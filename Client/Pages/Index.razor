@@ -1,0 +1,144 @@
+﻿@page "/"
+@using System.Net.Http
+@inject HttpClient httpClient
+@inject NavigationManager nav
+@using University_App.Shared.Models
+@using University_App.Shared.StoredProcedures
+
+<PageTitle>Index</PageTitle>
+
+<h1>Golden University</h1>
+
+Welcome to Golden University!
+
+@if (Faculties != null)
+{
+    <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+        <thead>
+            <tr>
+                <th>Faculty ID</th>
+                <th>Faculty Title</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var faculty in Faculties)
+            {
+                <tr @onclick="@((e) => Select_Faculty(e, faculty))">
+                    <td>@faculty.Faculty_Id</td>
+                    <td>@faculty.Faculty_Title</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <br />
+
+    @if (this.Faculty_Id != null) // !String.IsNullOrEmpty(Faculty_Id)
+    {
+       if (Students != null)
+       {
+            <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+                <thead>
+                    <tr>
+                        <th>Faculty ID</th>
+                        <th>Student ID</th>
+                        <th>Student Name</th>
+                        <th></th> <!--FLAG, PHOTO, ENROLLMENT YEAR, LINQ VERSION-->
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var student in Students)
+                    {
+                        <tr @onclick="@((e) => Select_Student(e, student))">
+                            <td>@student.Faculty_Id</td>
+                            <td>@student.Student_Id</td>
+                            <td>@student.Student_Name</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+       }
+    }
+    <br />
+
+    @if (this.Faculty_Id != null)
+   {
+        @if (this.Student_Id != null)
+        {
+            if (spStudent_Courses != null)
+            {
+                <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Student Name</th>
+                            <th>Course ID</th>
+                            <th>Course Title</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s_course in spStudent_Courses)
+                        {
+                            <tr>
+                                <td>@s_course.Student_Id</td>
+                                <td>@s_course.Student_Name</td>
+                                <td>@s_course.Course_Id</td>
+                                <td>@s_course.Course_Title</td>
+                            </tr>
+                        }
+
+                    </tbody>
+                </table>
+            }
+        }
+    }
+   <br />
+}
+
+
+@code {
+    #pragma warning disable CS8618 // Possible null reference argument.
+    #pragma warning disable CS8601 // Possible null reference argument.
+#pragma warning disable CS8602 // Possible null reference argument.
+
+    List<Faculty> Faculties { get; set; }
+    List<Course> Courses { get; set; }
+    List<Student> Students { get; set; }
+    List<spStudent_Course> spStudent_Courses { get; set; }
+    spStudent_Course _spStudent_Course { get; set; }
+    string? Faculty_Id { get; set; }
+    string? Student_Id { get; set; }
+
+    async Task Select_Faculty(MouseEventArgs e, Faculty faculty)
+    {
+        this.Faculty_Id = faculty.Faculty_Id;
+        Console.WriteLine("this.Faculty_Id: {0}", this.Faculty_Id);
+
+        if (!String.IsNullOrEmpty(Faculty_Id))
+        {
+            Students = await httpClient.GetFromJsonAsync<List<Student>>($"api/University/Students/{Faculty_Id}");
+            Student_Id = null;
+            spStudent_Courses = new List<spStudent_Course>();
+        }
+        await Task.CompletedTask;
+    }
+
+    async Task Select_Student(MouseEventArgs e, Student student) 
+    {
+        this.Student_Id = student.Student_Id;
+        Console.WriteLine("this.Student_Id: {0}", this.Student_Id);
+
+        if (!String.IsNullOrEmpty(Student_Id))
+        {
+            spStudent_Courses = await httpClient.GetFromJsonAsync<List<spStudent_Course>>($"api/University/spStudent_Courses/{Student_Id}");
+        }
+        await Task.CompletedTask;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Faculties = await httpClient.GetFromJsonAsync<List<Faculty>>($"api/University/Faculties");
+        Students = await httpClient.GetFromJsonAsync<List<Student>>($"api/University/Students/{"*"}");
+        spStudent_Courses = await httpClient.GetFromJsonAsync<List<spStudent_Course>>($"api/University/spStudent_Courses/{"*"}");
+        await base.OnInitializedAsync();
+    }
+}
