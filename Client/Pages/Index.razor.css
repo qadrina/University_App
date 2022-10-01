@@ -1,0 +1,10 @@
+﻿body {
+
+}
+
+.centre {
+    margin: auto;
+    align-content: center;
+    vertical-align: middle;
+    text-align: center;
+}

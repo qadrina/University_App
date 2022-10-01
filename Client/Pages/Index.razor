@@ -7,13 +7,17 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>Golden University</h1>
+<div class="centre">
+    <img src="gokam.png" style="max-width:100px;" />
+    <h1 >Golden University</h1>
+    <h5 >Welcome to Golden University!</h5>
+</div>
 
-Welcome to Golden University!
+<br />
 
 @if (Faculties != null)
 {
-    <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+    <table class="table table-bordered table-striped table-hover table-responsive-md" style="width:70%; margin:auto">
         <thead>
             <tr>
                 <th>Faculty ID</th>
@@ -21,52 +25,63 @@ Welcome to Golden University!
             </tr>
         </thead>
         <tbody>
-            @foreach (var faculty in Faculties)
+            @foreach (var fac in Faculties)
             {
-                <tr @onclick="@((e) => Select_Faculty(e, faculty))">
-                    <td>@faculty.Faculty_Id</td>
-                    <td>@faculty.Faculty_Title</td>
+                <tr @onclick="@((e) => Select_Faculty(e, fac))">
+                    <td>@fac.Faculty_Id</td>
+                    <td>@fac.Faculty_Title</td>
                 </tr>
             }
         </tbody>
     </table>
     <br />
 
-    @if (this.Faculty_Id != null) // !String.IsNullOrEmpty(Faculty_Id)
+    @*@if (this.Faculty_Id != null) // !String.IsNullOrEmpty(Faculty_Id)*@
+    @if (!String.IsNullOrEmpty(this.faculty.Faculty_Title)) // !String.IsNullOrEmpty(Faculty_Id)
     {
-       if (Students != null)
-       {
-            <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+        if (Students != null)
+        {
+            <h3 class="centre">@faculty.Faculty_Title</h3>
+            <h4 class="centre">@faculty.Faculty_Id</h4>
+            <table class="table table-bordered table-responsive table-striped table-hover" style="width:70%; margin:auto">
                 <thead>
                     <tr>
                         <th>Faculty ID</th>
+                        <th>Photo</th>
                         <th>Student ID</th>
                         <th>Student Name</th>
-                        <th></th> <!--FLAG, PHOTO, ENROLLMENT YEAR, LINQ VERSION-->
+                        <th>Class Year</th> <!--FLAG, PHOTO, ENROLLMENT YEAR, LINQ VERSION -->
+                        <th>Nationality</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var student in Students)
+                    @foreach (var stdn in Students)
                     {
-                        <tr @onclick="@((e) => Select_Student(e, student))">
-                            <td>@student.Faculty_Id</td>
-                            <td>@student.Student_Id</td>
-                            <td>@student.Student_Name</td>
+                        <tr @onclick="@((e) => Select_Student(e, stdn))">
+                            <td>@stdn.Faculty_Id</td>
+                            <td>Photo</td>
+                            <td>@stdn.Student_Id</td>
+                            <td>@stdn.Student_Name</td>
+                            <td>@stdn.Class_Year</td>
+                            <td>@stdn.Nationality</td>
                         </tr>
                     }
                 </tbody>
             </table>
-       }
+            
+        }
     }
     <br />
 
-    @if (this.Faculty_Id != null)
+    @if (!String.IsNullOrEmpty(this.faculty.Faculty_Title))
    {
-        @if (this.Student_Id != null)
+        @if (this.Student_Id != null) //!String.IsNullOrEmpty(this.student.Student_Id
         {
             if (spStudent_Courses != null)
             {
-                <table class="table table-borderless table-responsive table-striped" style="width:70%; margin:auto">
+                <h3 class="centre">@student.Student_Name</h3>
+                <h4 class="centre">@student.Student_Id</h4>
+                <table class="table table-bordered table-responsive table-striped table-hover" style="width:70%; margin:auto">
                     <thead>
                         <tr>
                             <th>Student ID</th>
@@ -97,21 +112,25 @@ Welcome to Golden University!
 
 @code {
     #pragma warning disable CS8618 // Possible null reference argument.
-    #pragma warning disable CS8601 // Possible null reference argument.
+#pragma warning disable CS8601 // Possible null reference argument.
 #pragma warning disable CS8602 // Possible null reference argument.
 
-    List<Faculty> Faculties { get; set; }
+    List<Faculty> Faculties { get; set; } = new List<Faculty>();
     List<Course> Courses { get; set; }
     List<Student> Students { get; set; }
     List<spStudent_Course> spStudent_Courses { get; set; }
+    Faculty faculty { get; set; } = new Faculty();
+    Student student { get; set; } = new Student();
     spStudent_Course _spStudent_Course { get; set; }
     string? Faculty_Id { get; set; }
     string? Student_Id { get; set; }
 
-    async Task Select_Faculty(MouseEventArgs e, Faculty faculty)
+    #region Select Tables
+    async Task Select_Faculty(MouseEventArgs e, Faculty fac)
     {
-        this.Faculty_Id = faculty.Faculty_Id;
-        Console.WriteLine("this.Faculty_Id: {0}", this.Faculty_Id);
+        this.Faculty_Id = fac.Faculty_Id;
+        this.faculty = fac;
+        Console.WriteLine("⭕ this.Faculty_Id: {0}", this.Faculty_Id);
 
         if (!String.IsNullOrEmpty(Faculty_Id))
         {
@@ -122,9 +141,10 @@ Welcome to Golden University!
         await Task.CompletedTask;
     }
 
-    async Task Select_Student(MouseEventArgs e, Student student) 
+    async Task Select_Student(MouseEventArgs e, Student stdn) 
     {
-        this.Student_Id = student.Student_Id;
+        this.Student_Id = stdn.Student_Id;
+        this.student = stdn;
         Console.WriteLine("this.Student_Id: {0}", this.Student_Id);
 
         if (!String.IsNullOrEmpty(Student_Id))
@@ -133,6 +153,7 @@ Welcome to Golden University!
         }
         await Task.CompletedTask;
     }
+    #endregion
 
     protected override async Task OnInitializedAsync()
     {
